@@ -1,6 +1,8 @@
 package com.tongzhu.order_service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import feign.FeignException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,11 +27,16 @@ public class OrderController {
     @PostMapping()
     ResponseEntity<Order> postOrder(@RequestBody ItemsDTO itemsDTO) throws JsonProcessingException {
 
-        Order order = orderService.postOrder(itemsDTO);
+        try {
+            Order order = orderService.postOrder(itemsDTO);
+            return ResponseEntity
+                    .created(URI.create("/api/orders/" + order.getId()))
+                    .body(order);
+        } catch (FeignException.Conflict e) {
+            return ResponseEntity.status(409).build();
+        }
 
-        return ResponseEntity
-                .created(URI.create("/api/orders/" + order.getId()))
-                .body(order);
+
 
 
     }

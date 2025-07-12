@@ -3,20 +3,26 @@ package com.tongzhu.product_service;
 
 
 
+import com.tongzhu.product_service.dto.ItemsDTO;
+import com.tongzhu.product_service.dto.RequestDTO;
+import com.tongzhu.product_service.dto.ResponseDTO;
 import com.tongzhu.product_service.exception.InvalidOrderException;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+
 
 @Service
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final RabbitTemplate rabbitTemplate;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, RabbitTemplate rabbitTemplate) {
         this.productRepository = productRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
 
@@ -30,18 +36,24 @@ public class ProductService {
 
 
 
+    @RabbitListener(queues = "request_queue")
+    public void hearOrder(RequestDTO requestDTO) {
+        try {
+            handleOrder(requestDTO.itemsDTO());
+            rabbitTemplate.convertAndSend("response_queue",
+                    new ResponseDTO(requestDTO.requestId(), true));
 
-    // this is basically check and deduct stocks;
-    // throws InvalidOrderException if anything in any prodId-value pair goes wrong;
-    // otherwise will do the deduction;
-    // this is transactional because checking and deducting goes together,
-    // and will roll back if ANY ONE pair goes wrong;
+        } catch (InvalidOrderException e) {
+            rabbitTemplate.convertAndSend("response_queue",
+                    new ResponseDTO(requestDTO.requestId(), false));
+
+        }
+    }
+
+
+
     @Transactional
-    public void putStocks(ItemsDTO itemsDTO) {
-
-        List<Product> updatedProducts = new ArrayList<>();
-
-
+    public void handleOrder(ItemsDTO itemsDTO) {
 
         itemsDTO.keySet().stream()
                 .sorted()
@@ -54,10 +66,11 @@ public class ProductService {
 
                     int newStock = stockAmount - wantAmount;
                     p.setStock(newStock);
-                    updatedProducts.add(p);
+
+
                 });
 
-        productRepository.saveAll(updatedProducts);
+
 
 
 

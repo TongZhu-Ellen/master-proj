@@ -72,6 +72,14 @@
 		</dependency>
 
 
+		<!-- 兔兔 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+
+
+
 
 
 

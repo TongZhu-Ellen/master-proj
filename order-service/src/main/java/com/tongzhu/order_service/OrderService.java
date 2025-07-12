@@ -1,41 +1,42 @@
 package com.tongzhu.order_service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.tongzhu.order_service.dto.ItemsDTO;
+import com.tongzhu.order_service.dto.RequestDTO;
 import com.tongzhu.order_service.exception.OrderNotFoundException;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
 
 @Service
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final ProductServiceClient productServiceClient;
+    private final RabbitTemplate rabbitTemplate;
 
-
-
-    public OrderService(OrderRepository orderRepository, ProductServiceClient productServiceClient) {
+    public OrderService(OrderRepository orderRepository, RabbitTemplate rabbitTemplate) {
         this.orderRepository = orderRepository;
-        this.productServiceClient = productServiceClient;
+        this.rabbitTemplate = rabbitTemplate;
     }
+
 
     public Order findById(Long id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException());
     }
 
-    // @Transactional
-    // this is very ironic here, since whatever we do vie Feign is not rollbackable;
-    // let's avoid the irony : (
-    public Order postOrder(ItemsDTO itemsDTO) throws JsonProcessingException {
 
 
-        productServiceClient.putStocks(itemsDTO);
 
-        Order order = new Order(itemsDTO);
-        orderRepository.save(order);
-        return order;
-
-
+    public String postOrder(ItemsDTO itemsDTO) {
+        String requestId = UUID.randomUUID().toString();
+        rabbitTemplate.convertAndSend("request_queue",
+                new RequestDTO(requestId, itemsDTO));
+        return requestId;
 
     }
 

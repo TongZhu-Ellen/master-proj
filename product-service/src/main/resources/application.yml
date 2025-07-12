@@ -1,6 +1,8 @@
 spring:
   application:
     name: product-service
+
+
   datasource:
     url: jdbc:mysql://localhost:3306/master_proj_product_db?useSSL=false&serverTimezone=UTC
     username: root
@@ -8,6 +10,16 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+
+
 
 eureka:
   client:

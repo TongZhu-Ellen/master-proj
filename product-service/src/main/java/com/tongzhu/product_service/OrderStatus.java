@@ -1,4 +1,4 @@
-package com.tongzhu.order_service;
+package com.tongzhu.product_service;
 
 import java.io.Serializable;
 

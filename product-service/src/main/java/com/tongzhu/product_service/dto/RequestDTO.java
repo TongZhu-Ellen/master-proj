@@ -1,5 +1,18 @@
 package com.tongzhu.product_service.dto;
 
-public record RequestDTO(String requestId, ItemsDTO itemsDTO) {
+import com.tongzhu.product_service.OrderStatus;
+
+
+import java.io.Serializable;
+
+public record RequestDTO(String uuid,
+                         ItemsDTO itemsDTO,
+                         OrderStatus orderStatus) implements Serializable {
+
 
 }
+
+
+
+
+

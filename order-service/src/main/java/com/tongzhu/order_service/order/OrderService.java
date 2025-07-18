@@ -1,13 +1,15 @@
 package com.tongzhu.order_service.order;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 
 import com.tongzhu.common_dto.*;
 
 import com.tongzhu.order_service.exception.OrderNotFoundException;
 
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -26,6 +28,7 @@ public class OrderService {
     private final StringRedisTemplate redisTemplate;
     private final OrderRepository orderRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final Logger log = LoggerFactory.getLogger(OrderService.class);
 
 
 
@@ -48,37 +51,22 @@ public class OrderService {
 
 
 
-    // risk here:
-    // it might happen that redis works but rabbit doesn't;
-    public String sendRequest(ItemsDTO itemsDTO) {
+
+    public String sendOrder(ItemsDTO itemsDTO) {
         String uuid = UUID.randomUUID().toString();
 
 
         redisTemplate.opsForValue().set("order:status:" + uuid,
                 OrderStatus.PENDING.toString());
+        log.info("[Order] Order enter Redis | uuid: {}, status: PENDING", uuid);
 
         rabbitTemplate.convertAndSend("request_queue",
-                new RequestDTO(uuid, itemsDTO, OrderStatus.PENDING));
+                new RequestDTO(uuid, itemsDTO));
 
         return uuid;
 
     }
 
-    @RabbitListener(queues = "response_queue")
-    public void getResponse(RequestDTO requestDTO) throws JsonProcessingException {
-
-        String uuid = requestDTO.uuid();
-        ItemsDTO itemsDTO = requestDTO.itemsDTO();
-        OrderStatus orderStatus = requestDTO.orderStatus();
-
-        if (OrderStatus.SUCCEED.equals(orderStatus)) {
-            orderRepository.save(new Order(itemsDTO));
-        } else if (OrderStatus.PENDING.equals(orderStatus)) {
-            // TODO: logging
-
-        }
-
-        redisTemplate.opsForValue().set("order:status:" + uuid, orderStatus.toString());
 
 
 
@@ -86,7 +74,6 @@ public class OrderService {
 
 
 
-    }
 
 
 

@@ -29,7 +29,7 @@ public class OrderController {
     @PostMapping()
     ResponseEntity<String> postOrder(@RequestBody ItemsDTO itemsDTO) throws JsonProcessingException {
 
-        return ResponseEntity.ok(orderService.sendRequest(itemsDTO));
+        return ResponseEntity.ok(orderService.sendOrder(itemsDTO));
 
 
     }

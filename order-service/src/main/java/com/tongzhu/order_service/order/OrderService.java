@@ -50,7 +50,7 @@ public class OrderService {
 
     // risk here:
     // it might happen that redis works but rabbit doesn't;
-    public String sendRequest(ItemsDTO itemsDTO) throws JsonProcessingException {
+    public String sendRequest(ItemsDTO itemsDTO) {
         String uuid = UUID.randomUUID().toString();
 
 

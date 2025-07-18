@@ -31,47 +31,13 @@ public class ProductService {
 
 
     private final ProductRepository productRepository;
-    private final RabbitTemplate rabbitTemplate;
 
-
-
-
-    public ProductService(ProductRepository productRepository, RabbitTemplate rabbitTemplate) {
-
+    public ProductService(ProductRepository productRepository) {
         this.productRepository = productRepository;
-        this.rabbitTemplate = rabbitTemplate;
     }
 
 
     @Transactional
-    @RabbitListener(queues = "request_queue")
-    public void hearOrder(RequestDTO requestDTO) throws JsonProcessingException {
-
-        String uuid = requestDTO.uuid();
-        ItemsDTO itemsDTO = requestDTO.itemsDTO();
-        OrderStatus orderStatus = requestDTO.orderStatus();
-
-        if (!OrderStatus.PENDING.equals(orderStatus)) {
-
-            // TODO: logging here
-
-            return;
-        }
-
-        try {
-            handleOrder(itemsDTO);
-            orderStatus = OrderStatus.SUCCEED;
-        } catch (InvalidOrderException e) {
-            orderStatus = OrderStatus.FAILED;
-        }
-        rabbitTemplate.convertAndSend("response_queue",
-                new RequestDTO(uuid, itemsDTO, orderStatus));
-
-
-
-    }
-
-
     public void handleOrder(ItemsDTO itemsDTO) {
 
         List<Long> sortedKeys = new ArrayList<>(itemsDTO.keySet());

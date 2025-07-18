@@ -9,7 +9,9 @@ import com.tongzhu.order_service.exception.OrderNotFoundException;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.redis.core.RedisTemplate;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -21,14 +23,14 @@ import java.util.UUID;
 @Service
 public class OrderService {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private final OrderRepository orderRepository;
     private final RabbitTemplate rabbitTemplate;
 
 
 
 
-    public OrderService(RedisTemplate<String, String> redisTemplate,
+    public OrderService(StringRedisTemplate redisTemplate,
                         OrderRepository orderRepository,
                         RabbitTemplate rabbitTemplate) {
         this.redisTemplate = redisTemplate;

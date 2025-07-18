@@ -58,7 +58,7 @@ public class OrderService {
 
         redisTemplate.opsForValue().set("order:status:" + uuid,
                 OrderStatus.PENDING.toString());
-        log.info("[Order] Order enter Redis | uuid: {}, status: PENDING", uuid);
+
 
         rabbitTemplate.convertAndSend("request_queue",
                 new RequestDTO(uuid, itemsDTO));

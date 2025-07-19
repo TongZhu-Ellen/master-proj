@@ -4,14 +4,12 @@ package com.tongzhu.product_service.product;
 
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 
 
 import com.tongzhu.common_dto.*;
 
 import com.tongzhu.product_service.exception.InvalidOrderException;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +59,3 @@ public class ProductService {
 
 
 }
-
-
-
-

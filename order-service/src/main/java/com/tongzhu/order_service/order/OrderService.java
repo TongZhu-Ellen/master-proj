@@ -4,6 +4,7 @@ package com.tongzhu.order_service.order;
 
 import com.tongzhu.common_dto.*;
 
+import com.tongzhu.order_service.PretendedErrorService;
 import com.tongzhu.order_service.exception.OrderNotFoundException;
 
 
@@ -28,7 +29,8 @@ public class OrderService {
     private final StringRedisTemplate redisTemplate;
     private final OrderRepository orderRepository;
     private final RabbitTemplate rabbitTemplate;
-    private final Logger log = LoggerFactory.getLogger(OrderService.class);
+    private final static Logger log = LoggerFactory.getLogger(OrderService.class);
+
 
 
 
@@ -56,12 +58,20 @@ public class OrderService {
         String uuid = UUID.randomUUID().toString();
 
 
-        redisTemplate.opsForValue().set("order:status:" + uuid,
-                OrderStatus.PENDING.toString());
+       try {
+           redisTemplate.opsForValue().set("order:status:" + uuid,
+                   OrderStatus.PENDING.toString());
 
 
-        rabbitTemplate.convertAndSend("request_queue",
-                new RequestDTO(uuid, itemsDTO));
+           rabbitTemplate.convertAndSend("request_queue",
+                   new RequestDTO(uuid, itemsDTO));
+       } catch (RuntimeException e) {
+
+           PretendedErrorService.pretendToPersistError(uuid, e.getMessage());
+
+
+
+       }
 
         return uuid;
 
